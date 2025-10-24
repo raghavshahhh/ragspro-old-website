@@ -1,7 +1,7 @@
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 
-const Spline = dynamic(() => import('@splinetool/react-spline'), {
+const Spline = dynamic(() => import('@splinetool/react-spline').then(mod => mod.default), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full min-h-[300px] flex items-center justify-center">
