@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import Layout from '../components/Layout'
 import MobilePerformanceOptimizer from '../components/MobilePerformanceOptimizer'
+import CustomCursor from '../components/CustomCursor'
 
 export default function App({ Component, pageProps, router }) {
   useEffect(() => {
@@ -33,6 +34,7 @@ export default function App({ Component, pageProps, router }) {
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
       </Head>
+      <CustomCursor />
       <AnimatePresence mode="wait">
         <MobilePerformanceOptimizer />
         <Layout>

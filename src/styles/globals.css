@@ -48,7 +48,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeSpeed;
   will-change: scroll-position;
-  transition: all 0.3s ease;
+}
+
+/* Hide default cursor on desktop */
+@media (min-width: 768px) {
+  * {
+    cursor: none !important;
+  }
 }
 
 .glass-card {
