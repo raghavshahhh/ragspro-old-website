@@ -50,10 +50,27 @@ body {
   will-change: scroll-position;
 }
 
-/* Hide default cursor on desktop */
-@media (min-width: 768px) {
-  * {
+/* Completely hide default cursor on desktop */
+@media (min-width: 1024px) {
+  *, *::before, *::after {
     cursor: none !important;
+  }
+  
+  html, body {
+    cursor: none !important;
+  }
+  
+  /* Force hide cursor on all interactive elements */
+  button, a, input, textarea, select, [role="button"], [onclick], [tabindex] {
+    cursor: none !important;
+  }
+  
+  /* Optimize cursor performance */
+  body {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
   }
 }
 
