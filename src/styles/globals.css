@@ -50,27 +50,22 @@ body {
   will-change: scroll-position;
 }
 
-/* Completely hide default cursor on desktop */
+/* Hide default cursor completely */
 @media (min-width: 1024px) {
-  *, *::before, *::after {
+  html {
     cursor: none !important;
   }
   
-  html, body {
-    cursor: none !important;
-  }
-  
-  /* Force hide cursor on all interactive elements */
-  button, a, input, textarea, select, [role="button"], [onclick], [tabindex] {
-    cursor: none !important;
-  }
-  
-  /* Optimize cursor performance */
   body {
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
+    cursor: none !important;
+  }
+  
+  * {
+    cursor: none !important;
+  }
+  
+  a, button, input, textarea, select {
+    cursor: none !important;
   }
 }
 

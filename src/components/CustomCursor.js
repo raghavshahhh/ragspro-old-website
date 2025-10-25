@@ -1,146 +1,129 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, useMotionValue, useSpring } from 'framer-motion'
 
 export default function CustomCursor() {
-  const [isVisible, setIsVisible] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
-  const [cursorText, setCursorText] = useState('')
   
-  const cursorX = useMotionValue(-100)
-  const cursorY = useMotionValue(-100)
+  const cursorX = useMotionValue(0)
+  const cursorY = useMotionValue(0)
   
-  // Ultra smooth spring configs
-  const cursors = [
-    { damping: 20, stiffness: 1000, size: 6, opacity: 1, color: 'bg-white', blend: 'mix-blend-difference' },
-    { damping: 25, stiffness: 800, size: 10, opacity: 0.9, color: 'bg-accent', blend: '' },
-    { damping: 30, stiffness: 600, size: 14, opacity: 0.7, color: 'bg-purple-400', blend: '' },
-    { damping: 35, stiffness: 450, size: 18, opacity: 0.5, color: 'bg-blue-400', blend: '' },
-    { damping: 40, stiffness: 350, size: 22, opacity: 0.4, color: 'bg-pink-400', blend: '' },
-    { damping: 45, stiffness: 250, size: 26, opacity: 0.3, color: 'bg-green-400', blend: '' },
-    { damping: 50, stiffness: 180, size: 30, opacity: 0.2, color: 'bg-yellow-400', blend: '' },
-    { damping: 55, stiffness: 120, size: 34, opacity: 0.15, color: 'bg-red-400', blend: '' }
-  ]
+  // Simple spring configs that work reliably
+  const springConfig = { damping: 25, stiffness: 400 }
   
-  const springCursors = cursors.map(cursor => ({
-    ...cursor,
-    x: useSpring(cursorX, { damping: cursor.damping, stiffness: cursor.stiffness, restDelta: 0.001 }),
-    y: useSpring(cursorY, { damping: cursor.damping, stiffness: cursor.stiffness, restDelta: 0.001 })
-  }))
+  const cursor1X = useSpring(cursorX, springConfig)
+  const cursor1Y = useSpring(cursorY, springConfig)
+  
+  const cursor2X = useSpring(cursorX, { damping: 30, stiffness: 300 })
+  const cursor2Y = useSpring(cursorY, { damping: 30, stiffness: 300 })
+  
+  const cursor3X = useSpring(cursorX, { damping: 35, stiffness: 200 })
+  const cursor3Y = useSpring(cursorY, { damping: 35, stiffness: 200 })
+  
+  const cursor4X = useSpring(cursorX, { damping: 40, stiffness: 150 })
+  const cursor4Y = useSpring(cursorY, { damping: 40, stiffness: 150 })
 
   useEffect(() => {
-    let animationId
-
+    setMounted(true)
+    
     const moveCursor = (e) => {
-      if (animationId) cancelAnimationFrame(animationId)
-      
-      animationId = requestAnimationFrame(() => {
-        cursorX.set(e.clientX)
-        cursorY.set(e.clientY)
-        setIsVisible(true)
+      cursorX.set(e.clientX)
+      cursorY.set(e.clientY)
+    }
+    
+    const handleHover = () => setIsHovering(true)
+    const handleUnhover = () => setIsHovering(false)
+
+    // Add listeners
+    document.addEventListener('mousemove', moveCursor)
+    
+    // Add hover listeners to common interactive elements
+    const addHoverListeners = () => {
+      const elements = document.querySelectorAll('a, button, input, textarea, [role="button"], .cursor-hover')
+      elements.forEach(el => {
+        el.addEventListener('mouseenter', handleHover)
+        el.addEventListener('mouseleave', handleUnhover)
       })
     }
-
-    const handleMouseEnter = () => setIsVisible(true)
-    const handleMouseLeave = () => setIsVisible(false)
     
-    const handleHoverStart = (e) => {
-      setIsHovering(true)
-      const text = e.target.getAttribute('data-cursor-text')
-      if (text) setCursorText(text)
-    }
+    addHoverListeners()
     
-    const handleHoverEnd = () => {
-      setIsHovering(false)
-      setCursorText('')
-    }
-
-    // Add event listeners
-    document.addEventListener('mousemove', moveCursor, { passive: true })
-    document.addEventListener('mouseenter', handleMouseEnter)
-    document.addEventListener('mouseleave', handleMouseLeave)
-    
-    // Enhanced interactive elements detection
-    const updateInteractiveElements = () => {
-      const interactiveElements = document.querySelectorAll(`
-        button, a, [role="button"], input, textarea, select, 
-        [data-cursor-hover], .cursor-hover, 
-        .hero-content button, .hero-content a,
-        nav a, .nav-link, .menu-item,
-        .project-card, .service-card, .contact-form,
-        [onclick], [onmouseenter], [tabindex]:not([tabindex="-1"])
-      `)
-      
-      interactiveElements.forEach(el => {
-        el.removeEventListener('mouseenter', handleHoverStart)
-        el.removeEventListener('mouseleave', handleHoverEnd)
-        el.addEventListener('mouseenter', handleHoverStart)
-        el.addEventListener('mouseleave', handleHoverEnd)
-      })
-    }
-
-    // Initial setup and periodic updates for dynamic content
-    updateInteractiveElements()
-    const intervalId = setInterval(updateInteractiveElements, 2000)
+    // Re-add listeners when page content changes
+    const observer = new MutationObserver(addHoverListeners)
+    observer.observe(document.body, { childList: true, subtree: true })
 
     return () => {
-      if (animationId) cancelAnimationFrame(animationId)
-      clearInterval(intervalId)
       document.removeEventListener('mousemove', moveCursor)
-      document.removeEventListener('mouseenter', handleMouseEnter)
-      document.removeEventListener('mouseleave', handleMouseLeave)
+      observer.disconnect()
     }
   }, [cursorX, cursorY])
 
-  // Hide on mobile and tablets
-  if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+  // Don't render on mobile or if not mounted
+  if (!mounted || (typeof window !== 'undefined' && window.innerWidth < 1024)) {
     return null
   }
 
   return (
-    <>
-      {springCursors.map((cursor, index) => (
-        <motion.div
-          key={index}
-          className={`fixed pointer-events-none z-[9999] ${cursor.blend}`}
-          style={{
-            x: cursor.x,
-            y: cursor.y,
-            width: cursor.size,
-            height: cursor.size,
-            marginLeft: -cursor.size / 2,
-            marginTop: -cursor.size / 2,
-          }}
-          animate={{
-            scale: isHovering ? (index === 0 ? 2 : 1.8) : 1,
-            opacity: isVisible ? cursor.opacity : 0,
-          }}
-          transition={{ 
-            duration: 0.05,
-            ease: "easeOut"
-          }}
-        >
-          <div className={`w-full h-full ${cursor.color} rounded-full`} />
-        </motion.div>
-      ))}
+    <div className="cursor-container">
+      {/* Main cursor */}
+      <motion.div
+        className="fixed top-0 left-0 w-2 h-2 bg-white rounded-full pointer-events-none z-[9999] mix-blend-difference"
+        style={{
+          x: cursor1X,
+          y: cursor1Y,
+          translateX: '-50%',
+          translateY: '-50%'
+        }}
+        animate={{
+          scale: isHovering ? 2 : 1
+        }}
+        transition={{ duration: 0.1 }}
+      />
       
-      {/* Cursor text for hover states */}
-      {cursorText && (
-        <motion.div
-          className="fixed pointer-events-none z-[9999] text-white text-sm font-medium px-3 py-1 bg-black bg-opacity-80 rounded-full"
-          style={{
-            x: springCursors[0].x,
-            y: springCursors[0].y,
-            marginLeft: 20,
-            marginTop: -10,
-          }}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.8 }}
-          transition={{ duration: 0.1 }}
-        >
-          {cursorText}
-        </motion.div>
-      )}
-    </>
+      {/* Second cursor */}
+      <motion.div
+        className="fixed top-0 left-0 w-3 h-3 bg-accent rounded-full pointer-events-none z-[9998] opacity-80"
+        style={{
+          x: cursor2X,
+          y: cursor2Y,
+          translateX: '-50%',
+          translateY: '-50%'
+        }}
+        animate={{
+          scale: isHovering ? 1.8 : 1
+        }}
+        transition={{ duration: 0.15 }}
+      />
+      
+      {/* Third cursor */}
+      <motion.div
+        className="fixed top-0 left-0 w-4 h-4 bg-purple-500 rounded-full pointer-events-none z-[9997] opacity-60"
+        style={{
+          x: cursor3X,
+          y: cursor3Y,
+          translateX: '-50%',
+          translateY: '-50%'
+        }}
+        animate={{
+          scale: isHovering ? 1.6 : 1
+        }}
+        transition={{ duration: 0.2 }}
+      />
+      
+      {/* Fourth cursor */}
+      <motion.div
+        className="fixed top-0 left-0 w-5 h-5 bg-blue-500 rounded-full pointer-events-none z-[9996] opacity-40"
+        style={{
+          x: cursor4X,
+          y: cursor4Y,
+          translateX: '-50%',
+          translateY: '-50%'
+        }}
+        animate={{
+          scale: isHovering ? 1.4 : 1
+        }}
+        transition={{ duration: 0.25 }}
+      />
+    </div>
   )
 }
