@@ -50,21 +50,9 @@ body {
   will-change: scroll-position;
 }
 
-/* Hide default cursor completely */
-@media (min-width: 1024px) {
-  html {
-    cursor: none !important;
-  }
-  
-  body {
-    cursor: none !important;
-  }
-  
+/* Hide default cursor on desktop only */
+@media (min-width: 768px) {
   * {
-    cursor: none !important;
-  }
-  
-  a, button, input, textarea, select {
     cursor: none !important;
   }
 }

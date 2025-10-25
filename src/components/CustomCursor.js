@@ -1,129 +1,106 @@
 import { useEffect, useState } from 'react'
-import { motion, useMotionValue, useSpring } from 'framer-motion'
+import { motion } from 'framer-motion'
 
 export default function CustomCursor() {
-  const [mounted, setMounted] = useState(false)
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [isHovering, setIsHovering] = useState(false)
-  
-  const cursorX = useMotionValue(0)
-  const cursorY = useMotionValue(0)
-  
-  // Simple spring configs that work reliably
-  const springConfig = { damping: 25, stiffness: 400 }
-  
-  const cursor1X = useSpring(cursorX, springConfig)
-  const cursor1Y = useSpring(cursorY, springConfig)
-  
-  const cursor2X = useSpring(cursorX, { damping: 30, stiffness: 300 })
-  const cursor2Y = useSpring(cursorY, { damping: 30, stiffness: 300 })
-  
-  const cursor3X = useSpring(cursorX, { damping: 35, stiffness: 200 })
-  const cursor3Y = useSpring(cursorY, { damping: 35, stiffness: 200 })
-  
-  const cursor4X = useSpring(cursorX, { damping: 40, stiffness: 150 })
-  const cursor4Y = useSpring(cursorY, { damping: 40, stiffness: 150 })
 
   useEffect(() => {
-    setMounted(true)
-    
-    const moveCursor = (e) => {
-      cursorX.set(e.clientX)
-      cursorY.set(e.clientY)
+    const updateMousePosition = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY })
     }
-    
-    const handleHover = () => setIsHovering(true)
-    const handleUnhover = () => setIsHovering(false)
 
-    // Add listeners
-    document.addEventListener('mousemove', moveCursor)
-    
-    // Add hover listeners to common interactive elements
-    const addHoverListeners = () => {
-      const elements = document.querySelectorAll('a, button, input, textarea, [role="button"], .cursor-hover')
-      elements.forEach(el => {
-        el.addEventListener('mouseenter', handleHover)
-        el.addEventListener('mouseleave', handleUnhover)
-      })
-    }
-    
-    addHoverListeners()
-    
-    // Re-add listeners when page content changes
-    const observer = new MutationObserver(addHoverListeners)
-    observer.observe(document.body, { childList: true, subtree: true })
+    const handleMouseEnter = () => setIsHovering(true)
+    const handleMouseLeave = () => setIsHovering(false)
+
+    document.addEventListener('mousemove', updateMousePosition)
+
+    // Add hover effects
+    const interactiveElements = document.querySelectorAll('a, button, input, textarea')
+    interactiveElements.forEach(el => {
+      el.addEventListener('mouseenter', handleMouseEnter)
+      el.addEventListener('mouseleave', handleMouseLeave)
+    })
 
     return () => {
-      document.removeEventListener('mousemove', moveCursor)
-      observer.disconnect()
+      document.removeEventListener('mousemove', updateMousePosition)
+      interactiveElements.forEach(el => {
+        el.removeEventListener('mouseenter', handleMouseEnter)
+        el.removeEventListener('mouseleave', handleMouseLeave)
+      })
     }
-  }, [cursorX, cursorY])
+  }, [])
 
-  // Don't render on mobile or if not mounted
-  if (!mounted || (typeof window !== 'undefined' && window.innerWidth < 1024)) {
+  // Hide on mobile
+  if (typeof window !== 'undefined' && window.innerWidth < 768) {
     return null
   }
 
   return (
-    <div className="cursor-container">
+    <>
       {/* Main cursor */}
       <motion.div
-        className="fixed top-0 left-0 w-2 h-2 bg-white rounded-full pointer-events-none z-[9999] mix-blend-difference"
-        style={{
-          x: cursor1X,
-          y: cursor1Y,
-          translateX: '-50%',
-          translateY: '-50%'
-        }}
+        className="fixed top-0 left-0 w-4 h-4 bg-white rounded-full pointer-events-none z-[9999] mix-blend-difference"
         animate={{
-          scale: isHovering ? 2 : 1
+          x: mousePosition.x - 8,
+          y: mousePosition.y - 8,
+          scale: isHovering ? 1.5 : 1,
         }}
-        transition={{ duration: 0.1 }}
+        transition={{
+          type: "spring",
+          damping: 30,
+          stiffness: 500,
+          mass: 0.5,
+        }}
       />
       
-      {/* Second cursor */}
+      {/* Trail cursor 1 */}
       <motion.div
-        className="fixed top-0 left-0 w-3 h-3 bg-accent rounded-full pointer-events-none z-[9998] opacity-80"
-        style={{
-          x: cursor2X,
-          y: cursor2Y,
-          translateX: '-50%',
-          translateY: '-50%'
-        }}
+        className="fixed top-0 left-0 w-6 h-6 bg-accent rounded-full pointer-events-none z-[9998] opacity-70"
         animate={{
-          scale: isHovering ? 1.8 : 1
+          x: mousePosition.x - 12,
+          y: mousePosition.y - 12,
+          scale: isHovering ? 1.3 : 1,
         }}
-        transition={{ duration: 0.15 }}
+        transition={{
+          type: "spring",
+          damping: 35,
+          stiffness: 300,
+          mass: 0.8,
+        }}
       />
       
-      {/* Third cursor */}
+      {/* Trail cursor 2 */}
       <motion.div
-        className="fixed top-0 left-0 w-4 h-4 bg-purple-500 rounded-full pointer-events-none z-[9997] opacity-60"
-        style={{
-          x: cursor3X,
-          y: cursor3Y,
-          translateX: '-50%',
-          translateY: '-50%'
-        }}
+        className="fixed top-0 left-0 w-8 h-8 bg-purple-500 rounded-full pointer-events-none z-[9997] opacity-50"
         animate={{
-          scale: isHovering ? 1.6 : 1
+          x: mousePosition.x - 16,
+          y: mousePosition.y - 16,
+          scale: isHovering ? 1.2 : 1,
         }}
-        transition={{ duration: 0.2 }}
+        transition={{
+          type: "spring",
+          damping: 40,
+          stiffness: 200,
+          mass: 1,
+        }}
       />
       
-      {/* Fourth cursor */}
+      {/* Trail cursor 3 */}
       <motion.div
-        className="fixed top-0 left-0 w-5 h-5 bg-blue-500 rounded-full pointer-events-none z-[9996] opacity-40"
-        style={{
-          x: cursor4X,
-          y: cursor4Y,
-          translateX: '-50%',
-          translateY: '-50%'
-        }}
+        className="fixed top-0 left-0 w-10 h-10 bg-blue-500 rounded-full pointer-events-none z-[9996] opacity-30"
         animate={{
-          scale: isHovering ? 1.4 : 1
+          x: mousePosition.x - 20,
+          y: mousePosition.y - 20,
+          scale: isHovering ? 1.1 : 1,
         }}
-        transition={{ duration: 0.25 }}
+        transition={{
+          type: "spring",
+          damping: 45,
+          stiffness: 150,
+          mass: 1.2,
+        }}
       />
-    </div>
+    </>
   )
 }
