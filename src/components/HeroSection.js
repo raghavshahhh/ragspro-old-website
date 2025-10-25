@@ -1,17 +1,8 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
+import SplineModel from './SplineModel'
 import ErrorBoundary from './ErrorBoundary'
-
-const SplineModel = dynamic(() => import('./SplineModel'), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-full min-h-[300px] flex items-center justify-center">
-      <div className="animate-pulse text-accent">Loading 3D Model...</div>
-    </div>
-  )
-})
 
 export default function HeroSection() {
   const [isMobile, setIsMobile] = useState(false)

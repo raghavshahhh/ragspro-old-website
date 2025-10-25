@@ -54,11 +54,14 @@ export default function Document() {
         {/* Performance Optimization */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://prod.spline.design" />
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
         <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+        <link rel="dns-prefetch" href="//prod.spline.design" />
         
         {/* Critical Resource Hints */}
         <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="https://prod.spline.design/23srEjEfgbBjQIle/scene.splinecode" as="fetch" crossOrigin="anonymous" />
         <meta name="format-detection" content="date=no, address=no, email=no" />
         
         {/* Performance Meta */}
