@@ -1,121 +1,149 @@
 import { useEffect, useState } from 'react'
-import { motion, useMotionValue, useSpring } from 'framer-motion'
+import { motion } from 'framer-motion'
 
 export default function CustomCursor() {
-  const [mounted, setMounted] = useState(false)
-  const [cursorVariant, setCursorVariant] = useState('default')
-  
-  const cursorX = useMotionValue(-100)
-  const cursorY = useMotionValue(-100)
-  
-  const springConfig = { damping: 25, stiffness: 700 }
-  const cursorXSpring = useSpring(cursorX, springConfig)
-  const cursorYSpring = useSpring(cursorY, springConfig)
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [isHovering, setIsHovering] = useState(false)
+  const [cursorType, setCursorType] = useState('default')
 
   useEffect(() => {
-    setMounted(true)
-
-    const moveCursor = (e) => {
-      cursorX.set(e.clientX - 16)
-      cursorY.set(e.clientY - 16)
+    const updateMousePosition = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY })
     }
 
-    const onMouseEnterLink = () => setCursorVariant('link')
-    const onMouseEnterText = () => setCursorVariant('text')
-    const onMouseEnterButton = () => setCursorVariant('button')
-    const onMouseLeave = () => setCursorVariant('default')
+    const handleHover = (type) => {
+      setIsHovering(true)
+      setCursorType(type)
+    }
 
-    // Add event listeners
-    document.addEventListener('mousemove', moveCursor)
+    const handleLeave = () => {
+      setIsHovering(false)
+      setCursorType('default')
+    }
 
-    // Function to add hover listeners
-    const addHoverListeners = () => {
+    // Global mouse move
+    document.addEventListener('mousemove', updateMousePosition)
+
+    // Add hover listeners to all interactive elements
+    const updateHoverListeners = () => {
+      // Remove existing listeners first
+      document.querySelectorAll('*').forEach(el => {
+        el.removeEventListener('mouseenter', () => handleHover('hover'))
+        el.removeEventListener('mouseleave', handleLeave)
+      })
+
       // Links
-      const links = document.querySelectorAll('a, [role="link"]')
-      links.forEach(link => {
-        link.addEventListener('mouseenter', onMouseEnterLink)
-        link.addEventListener('mouseleave', onMouseLeave)
+      document.querySelectorAll('a').forEach(el => {
+        el.addEventListener('mouseenter', () => handleHover('link'))
+        el.addEventListener('mouseleave', handleLeave)
       })
 
       // Buttons
-      const buttons = document.querySelectorAll('button, [role="button"], input[type="submit"]')
-      buttons.forEach(button => {
-        button.addEventListener('mouseenter', onMouseEnterButton)
-        button.addEventListener('mouseleave', onMouseLeave)
+      document.querySelectorAll('button, [role="button"]').forEach(el => {
+        el.addEventListener('mouseenter', () => handleHover('button'))
+        el.addEventListener('mouseleave', handleLeave)
+      })
+
+      // Text inputs
+      document.querySelectorAll('input[type="text"], input[type="email"], textarea').forEach(el => {
+        el.addEventListener('mouseenter', () => handleHover('text'))
+        el.addEventListener('mouseleave', handleLeave)
       })
 
       // Text elements
-      const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, div[contenteditable], textarea, input[type="text"], input[type="email"]')
-      textElements.forEach(text => {
-        text.addEventListener('mouseenter', onMouseEnterText)
-        text.addEventListener('mouseleave', onMouseLeave)
+      document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span').forEach(el => {
+        el.addEventListener('mouseenter', () => handleHover('text'))
+        el.addEventListener('mouseleave', handleLeave)
       })
     }
 
-    addHoverListeners()
+    // Initial setup
+    updateHoverListeners()
 
-    // Re-add listeners when DOM changes
-    const observer = new MutationObserver(addHoverListeners)
-    observer.observe(document.body, { childList: true, subtree: true })
+    // Update on DOM changes
+    const observer = new MutationObserver(updateHoverListeners)
+    observer.observe(document.body, { 
+      childList: true, 
+      subtree: true 
+    })
+
+    // Update on page navigation
+    const handleNavigation = () => {
+      setTimeout(updateHoverListeners, 100)
+    }
+    
+    window.addEventListener('popstate', handleNavigation)
+    window.addEventListener('pushstate', handleNavigation)
 
     return () => {
-      document.removeEventListener('mousemove', moveCursor)
+      document.removeEventListener('mousemove', updateMousePosition)
+      window.removeEventListener('popstate', handleNavigation)
+      window.removeEventListener('pushstate', handleNavigation)
       observer.disconnect()
     }
-  }, [cursorX, cursorY])
+  }, [])
 
-  // Cursor variants
-  const variants = {
-    default: {
-      width: 32,
-      height: 32,
-      backgroundColor: 'rgba(255, 255, 255, 0.8)',
-      mixBlendMode: 'difference',
-      borderRadius: '50%',
-    },
-    text: {
-      width: 2,
-      height: 24,
-      backgroundColor: 'rgba(255, 255, 255, 1)',
-      mixBlendMode: 'difference',
-      borderRadius: '1px',
-    },
-    link: {
-      width: 48,
-      height: 48,
-      backgroundColor: 'rgba(110, 68, 255, 0.3)',
-      mixBlendMode: 'normal',
-      borderRadius: '50%',
-      border: '2px solid rgba(110, 68, 255, 0.8)',
-    },
-    button: {
-      width: 40,
-      height: 40,
-      backgroundColor: 'rgba(110, 68, 255, 0.2)',
-      mixBlendMode: 'normal',
-      borderRadius: '50%',
-      border: '2px solid rgba(110, 68, 255, 1)',
-    }
+  // Don't show on mobile
+  if (typeof window !== 'undefined' && window.innerWidth < 768) {
+    return null
   }
 
-  // Hide on mobile or if not mounted
-  if (!mounted || (typeof window !== 'undefined' && window.innerWidth < 768)) {
-    return null
+  const getCursorStyle = () => {
+    switch (cursorType) {
+      case 'link':
+        return {
+          width: 48,
+          height: 48,
+          backgroundColor: 'rgba(110, 68, 255, 0.2)',
+          border: '2px solid rgb(110, 68, 255)',
+          borderRadius: '50%'
+        }
+      case 'button':
+        return {
+          width: 40,
+          height: 40,
+          backgroundColor: 'rgba(110, 68, 255, 0.3)',
+          border: '2px solid rgb(110, 68, 255)',
+          borderRadius: '50%'
+        }
+      case 'text':
+        return {
+          width: 2,
+          height: 20,
+          backgroundColor: 'white',
+          borderRadius: '1px'
+        }
+      default:
+        return {
+          width: 20,
+          height: 20,
+          backgroundColor: 'white',
+          borderRadius: '50%',
+          mixBlendMode: 'difference'
+        }
+    }
   }
 
   return (
     <motion.div
-      className="fixed top-0 left-0 pointer-events-none z-[9999]"
-      style={{
-        x: cursorXSpring,
-        y: cursorYSpring,
+      className="fixed pointer-events-none z-[99999]"
+      animate={{
+        x: mousePosition.x - (getCursorStyle().width / 2),
+        y: mousePosition.y - (getCursorStyle().height / 2),
+        ...getCursorStyle()
       }}
-      animate={variants[cursorVariant]}
       transition={{
         type: "spring",
-        damping: 20,
-        stiffness: 400,
-        mass: 0.5,
+        damping: 30,
+        stiffness: 600,
+        mass: 0.5
+      }}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        pointerEvents: 'none',
+        zIndex: 99999
       }}
     />
   )
