@@ -50,18 +50,6 @@ body {
   will-change: scroll-position;
 }
 
-/* Hide default cursor completely */
-@media (min-width: 768px) {
-  body, * {
-    cursor: none !important;
-  }
-  
-  /* Ensure cursor is hidden on all interactive elements */
-  a, button, input, textarea, select, [role="button"], [onclick], [tabindex] {
-    cursor: none !important;
-  }
-}
-
 .glass-card {
   background: rgba(18, 18, 18, 0.5);
   backdrop-filter: blur(16px);
